@@ -6,11 +6,15 @@ import (
 	"log"
 
 	"github.com/Mobrick/gophermart/internal/models"
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 type Storage interface {
 	PingDB() error
-	AddNewAccount(context.Context, models.SimpleAccountData) (bool, error)
+	PostOrderOrReturnStatus(context.Context, string) (error)
+	AddNewAccount(context.Context, models.SimpleAccountData) (bool, string, error)
+	CheckLogin(context.Context, models.SimpleAccountData) (string, error)
+	Close()
 }
 
 func NewDB(connectionString string) Storage {

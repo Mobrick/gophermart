@@ -1,8 +1,12 @@
 package handler
 
 import (
+	"log"
+	"net/http"
+
 	"github.com/Mobrick/gophermart/internal/config"
 	"github.com/Mobrick/gophermart/internal/database"
+	"github.com/Mobrick/gophermart/internal/userauth"
 )
 
 type HandlerEnv struct {
@@ -10,3 +14,18 @@ type HandlerEnv struct {
 	Storage      database.Storage
 }
 
+func GetUserIdFromRequest(req *http.Request) (string, bool) {
+	cookie, err := req.Cookie("auth_token")
+	if err != nil {
+		log.Printf("no cookie found. " + err.Error())
+		return "", false
+	}	
+
+	token := cookie.Value
+	userId, ok := userauth.GetUserID(token)
+	if !ok {
+		log.Printf("invalid token")
+		return "", false
+	}
+	return userId, true
+}

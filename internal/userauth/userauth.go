@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/google/uuid"
 )
 
 const TokenExp = time.Hour * 3
@@ -20,8 +19,8 @@ type Claims struct {
 
 func CookieMiddleware(h http.Handler) http.Handler {
 	cookieFn := func(w http.ResponseWriter, r *http.Request) {
-		if !cookieIsValid(r) {
-			cookie, err := createNewCookie()
+		if !CookieIsValid(r) {
+			cookie, err := CreateNewCookie("")
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -34,7 +33,7 @@ func CookieMiddleware(h http.Handler) http.Handler {
 	return http.HandlerFunc(cookieFn)
 }
 
-func cookieIsValid(r *http.Request) bool {
+func CookieIsValid(r *http.Request) bool {
 	cookie, err := r.Cookie("auth_token")
 	// проверяем есть ли кука
 	if err != nil {
@@ -69,8 +68,8 @@ func GetUserID(tokenString string) (string, bool) {
 	return claims.UserID, true
 }
 
-func createNewCookie() (http.Cookie, error) {
-	tokenString, err := buildJWTString()
+func CreateNewCookie(id string) (http.Cookie, error) {
+	tokenString, err := buildJWTString(id)
 	if err != nil {
 		return http.Cookie{}, err
 	}
@@ -87,8 +86,7 @@ func createNewCookie() (http.Cookie, error) {
 	return cookie, nil
 }
 
-func buildJWTString() (string, error) {
-	newID := uuid.New().String()
+func buildJWTString(newID string) (string, error) {
 	// создаём новый токен с алгоритмом подписи HS256 и утверждениями — Claims
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
 		RegisteredClaims: jwt.RegisteredClaims{

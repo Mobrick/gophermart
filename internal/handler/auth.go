@@ -8,13 +8,17 @@ import (
 	"github.com/Mobrick/gophermart/internal/logger"
 	"github.com/Mobrick/gophermart/internal/models"
 	"github.com/Mobrick/gophermart/internal/userauth"
-	"go.uber.org/zap"
 )
 
-func (env HandlerEnv) RegisterHandle(res http.ResponseWriter, req *http.Request) {
+func (env HandlerEnv) AuthHandle(res http.ResponseWriter, req *http.Request) {
+	if userauth.CookieIsValid(req) {
+		res.WriteHeader(http.StatusOK)
+		return
+	}
+
 	ctx := req.Context()
 
-	var registrationData models.SimpleAccountData
+	var loginData models.SimpleAccountData
 	var buf bytes.Buffer
 
 	// читаем тело запроса
@@ -24,24 +28,20 @@ func (env HandlerEnv) RegisterHandle(res http.ResponseWriter, req *http.Request)
 		return
 	}
 
-	if err = json.Unmarshal(buf.Bytes(), &registrationData); err != nil {
+	if err = json.Unmarshal(buf.Bytes(), &loginData); err != nil {
 		logger.Log.Debug("could not unmarshal registration data")
 		http.Error(res, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	storage := env.Storage
-	loginAlreadyInUse, id, err := storage.AddNewAccount(ctx, registrationData)
+	id, err := env.Storage.CheckLogin(ctx, loginData)
 	if err != nil {
-		logger.Log.Debug("could not copmplete user registration", zap.String("Attempted login", string(registrationData.Login)))
+		logger.Log.Debug("could not check login data")
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if loginAlreadyInUse {
-		logger.Log.Debug("login already in use", zap.String("Attempted login", string(registrationData.Login)))
-		http.Error(res, err.Error(), http.StatusConflict)
-		return
+	if len(id) == 0 {
+		res.WriteHeader(http.StatusUnauthorized)
 	}
 
 	cookie, err := userauth.CreateNewCookie(id)
