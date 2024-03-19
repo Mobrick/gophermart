@@ -11,7 +11,8 @@ import (
 )
 
 func (env HandlerEnv) AuthHandle(res http.ResponseWriter, req *http.Request) {
-	if userauth.CookieIsValid(req) {
+
+	if _, ok := userauth.CookieIsValid(req); ok {
 		res.WriteHeader(http.StatusOK)
 		return
 	}

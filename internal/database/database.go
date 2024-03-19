@@ -11,9 +11,10 @@ import (
 
 type Storage interface {
 	PingDB() error
-	PostOrderOrReturnStatus(context.Context, string) (error)
 	AddNewAccount(context.Context, models.SimpleAccountData) (bool, string, error)
 	CheckLogin(context.Context, models.SimpleAccountData) (string, error)
+	CheckIfOrderExists(context.Context, string, string) (bool, error)
+	PostOrder(context.Context, string, string) error
 	Close()
 }
 

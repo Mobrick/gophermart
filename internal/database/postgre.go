@@ -92,23 +92,35 @@ func (dbData PostgreDB) Close() {
 	dbData.DatabaseConnection.Close()
 }
 
-func (dbData PostgreDB) PostOrderOrReturnStatus(ctx context.Context, number string) (string, error) {
+func (dbData PostgreDB) CheckIfOrderExists(ctx context.Context, number string, currentUserUUID string) (bool, error) {
 	err := dbData.createOrdersTableIfNotExists(ctx)
 	if err != nil {
-		return err
+		return false, err
 	}
 	var uuid string
 	// ищем существует ли, если да то кто владелец заказа
 	row := dbData.DatabaseConnection.QueryRowContext(ctx, "SELECT account_uuid FROM orders WHERE number = $1", number)
 	err = row.Scan(&uuid)
 	if err == nil {
-		return uuid, nil
+		if uuid == currentUserUUID{
+			return true, nil
+		}
+		return false, nil
 	}
-	if err != sql.ErrNoRows {
-		return "", err
-	}
-	dbData.DatabaseConnection.ExecContext(ctx, "INSERT INTO url_records (number, account_uuid, status, )")
+	return false, err
+}
+
 	// если не существует, добавляем в таблицу горутиной
+	// реализация без горутины
+func (dbData PostgreDB) PostOrder(ctx context.Context, number string, currentUserUUID string) error {
+	// отправка в систему начисления баллов для проверки запроса
+	// формирование запроса
+	// парсинг ответа
+	// в любом случае создаем запись в даблице заказов
+	_, err := dbData.DatabaseConnection.ExecContext(ctx, "INSERT INTO url_records (number, account_uuid) VALUES ($1, $2)", number, currentUserUUID)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

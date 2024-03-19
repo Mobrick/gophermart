@@ -19,7 +19,8 @@ type Claims struct {
 
 func CookieMiddleware(h http.Handler) http.Handler {
 	cookieFn := func(w http.ResponseWriter, r *http.Request) {
-		if !CookieIsValid(r) {
+		_, ok := CookieIsValid(r)
+		if !ok {
 			cookie, err := CreateNewCookie("")
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -33,17 +34,17 @@ func CookieMiddleware(h http.Handler) http.Handler {
 	return http.HandlerFunc(cookieFn)
 }
 
-func CookieIsValid(r *http.Request) bool {
+func CookieIsValid(r *http.Request) (string, bool) {
 	cookie, err := r.Cookie("auth_token")
 	// проверяем есть ли кука
 	if err != nil {
-		return false
+		return "", false
 	}
 
 	// в случае если кука есть проверяем что она проходит проверку подлинности
 	token := cookie.Value
-	_, ok := GetUserID(token)
-	return ok
+	id, ok := GetUserID(token)
+	return id, ok
 }
 
 func GetUserID(tokenString string) (string, bool) {
