@@ -34,7 +34,7 @@ func (dbData PostgreDB) AddNewAccount(ctx context.Context, accountData models.Si
 
 	err := dbData.createAccountsTableIfNotExists(ctx)
 	if err != nil {
-		return false,"", nil
+		return false, "", nil
 	}
 
 	insertStmt := "INSERT INTO " + accountsTableName + " (uuid, login, password)" +
@@ -46,10 +46,10 @@ func (dbData PostgreDB) AddNewAccount(ctx context.Context, accountData models.Si
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
 			log.Printf("login %s already in database", accountData.Login)
-			return true,"", nil
+			return true, "", nil
 		} else {
 			log.Printf("Failed to insert a record: " + accountData.Login)
-			return false,"", err
+			return false, "", err
 		}
 	}
 
@@ -102,7 +102,7 @@ func (dbData PostgreDB) CheckIfOrderExists(ctx context.Context, number string, c
 	row := dbData.DatabaseConnection.QueryRowContext(ctx, "SELECT account_uuid FROM orders WHERE number = $1", number)
 	err = row.Scan(&uuid)
 	if err == nil {
-		if uuid == currentUserUUID{
+		if uuid == currentUserUUID {
 			return true, nil
 		}
 		return false, nil
@@ -110,8 +110,8 @@ func (dbData PostgreDB) CheckIfOrderExists(ctx context.Context, number string, c
 	return false, err
 }
 
-	// если не существует, добавляем в таблицу горутиной
-	// реализация без горутины
+// если не существует, добавляем в таблицу горутиной
+// реализация без горутины
 func (dbData PostgreDB) PostOrder(ctx context.Context, number string, currentUserUUID string) error {
 	// отправка в систему начисления баллов для проверки запроса
 	// формирование запроса
@@ -138,4 +138,31 @@ func (dbData PostgreDB) createOrdersTableIfNotExists(ctx context.Context) error 
 	}
 
 	return nil
+}
+
+func (dbData PostgreDB) GetOrdersByUserId(ctx context.Context, id string) ([]models.OrderData, error) {
+	var ordersData []models.OrderData
+	stmt := "SELECT number, status, accrual, uploaded_at FROM orders WHERE account_uuid = $1"
+	rows, err := dbData.DatabaseConnection.QueryContext(ctx, stmt, id)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var number, status, accrual, uploadedAt string
+		err := rows.Scan(&number, &status, &accrual, &uploadedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		order := models.OrderData{
+			Number:     number,
+			Status:     status,
+			Accrual:    accrual,
+			UploadedAt: uploadedAt,
+		}
+		ordersData = append(ordersData, order)
+	}
+
+	defer rows.Close()
+	return ordersData, nil
 }

@@ -15,6 +15,7 @@ type Storage interface {
 	CheckLogin(context.Context, models.SimpleAccountData) (string, error)
 	CheckIfOrderExists(context.Context, string, string) (bool, error)
 	PostOrder(context.Context, string, string) error
+	GetOrdersByUserId(context.Context, string) ([]models.OrderData, error)
 	Close()
 }
 
