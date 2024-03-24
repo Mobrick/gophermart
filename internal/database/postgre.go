@@ -3,7 +3,6 @@ package database
 import (
 	"context"
 	"database/sql"
-	"embed"
 	"errors"
 	"log"
 	"time"
@@ -12,12 +11,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/pressly/goose/v3"
 )
 
 const accountsTableName = "accounts"
-
-var embedMigrations embed.FS
 
 type PostgreDB struct {
 	DatabaseConnection *sql.DB
@@ -33,15 +29,10 @@ func (dbData PostgreDB) PingDB() error {
 func (dbData PostgreDB) AddNewAccount(ctx context.Context, accountData models.SimpleAccountData) (bool, string, error) {
 	id := uuid.New().String()
 
-	err := dbData.createAccountsTableIfNotExists(ctx)
-	if err != nil {
-		return false, "", err
-	}
-
 	insertStmt := "INSERT INTO " + accountsTableName + " (uuid, login, password)" +
 		" VALUES ($1, $2, $3)"
 
-	_, err = dbData.DatabaseConnection.ExecContext(ctx, insertStmt, id, accountData.Login, accountData.Password)
+	_, err := dbData.DatabaseConnection.ExecContext(ctx, insertStmt, id, accountData.Login, accountData.Password)
 
 	if err != nil {
 		var pgErr *pgconn.PgError
@@ -73,35 +64,15 @@ func (dbData PostgreDB) CheckLogin(ctx context.Context, accountData models.Simpl
 	return id, nil
 }
 
-func (dbData PostgreDB) createAccountsTableIfNotExists(ctx context.Context) error {
-	goose.SetBaseFS(embedMigrations)
-
-	err := goose.SetDialect("postgres")
-	if err != nil {
-		return err
-	}
-
-	// добавить embedding
-	if err := goose.Up(dbData.DatabaseConnection, "accounts_migrations"); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (dbData PostgreDB) Close() {
 	dbData.DatabaseConnection.Close()
 }
 
 func (dbData PostgreDB) CheckIfOrderExists(ctx context.Context, number string, currentUserUUID string) (bool, error) {
-	err := dbData.createOrdersTableIfNotExists(ctx)
-	if err != nil {
-		return false, err
-	}
 	var uuid string
 	// ищем существует ли, если да то кто владелец заказа
 	row := dbData.DatabaseConnection.QueryRowContext(ctx, "SELECT account_uuid FROM orders WHERE number = $1", number)
-	err = row.Scan(&uuid)
+	err := row.Scan(&uuid)
 	if err == nil {
 		if uuid == currentUserUUID {
 			return true, nil
@@ -122,22 +93,6 @@ func (dbData PostgreDB) PostOrder(ctx context.Context, number string, currentUse
 	if err != nil {
 		return err
 	}
-	return nil
-}
-
-func (dbData PostgreDB) createOrdersTableIfNotExists(ctx context.Context) error {
-	goose.SetBaseFS(embedMigrations)
-
-	err := goose.SetDialect("postgres")
-	if err != nil {
-		return err
-	}
-
-	// добавить embedding
-	if err := goose.Up(dbData.DatabaseConnection, "orders_migrations"); err != nil {
-		return err
-	}
-
 	return nil
 }
 
