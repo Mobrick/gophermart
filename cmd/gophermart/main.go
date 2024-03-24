@@ -41,10 +41,13 @@ func main() {
 
 	r.Get(`/ping`, env.PingDBHandle)
 	r.Get(`/api/user/orders`, env.OrdersHandle)
+	r.Get(`/api/user/balance`, env.BalanceHandle)
+	r.Get(`/api/user/withdrawals`, env.WithdrawalsHandle)
 
 	r.Post("/api/user/register", env.RegisterHandle)
 	r.Post("/api/user/login", env.AuthHandle)
 	r.Post("/api/user/orders", env.OrderPostHandle)
+	r.Post("/api/user/balance/withdraw", env.WithdrawHandle)
 
 	sugar.Infow(
 		"Starting server",

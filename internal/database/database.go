@@ -16,6 +16,10 @@ type Storage interface {
 	CheckIfOrderExists(context.Context, string, string) (bool, error)
 	PostOrder(context.Context, string, string) error
 	GetOrdersByUserId(context.Context, string) ([]models.OrderData, error)
+	GetBalanceByUserId(context.Context, string) (int, int, error)
+	WithdrawPoints(context.Context, string, string, int) (error)
+	CheckIfEnoughPoints(context.Context, string, int) (bool, error)
+	GetWithdrawals(context.Context, string) ([]models.WithdrawData, error)
 	Close()
 }
 

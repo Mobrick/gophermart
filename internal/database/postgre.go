@@ -6,6 +6,7 @@ import (
 	"embed"
 	"errors"
 	"log"
+	"time"
 
 	"github.com/Mobrick/gophermart/internal/models"
 	"github.com/google/uuid"
@@ -34,7 +35,7 @@ func (dbData PostgreDB) AddNewAccount(ctx context.Context, accountData models.Si
 
 	err := dbData.createAccountsTableIfNotExists(ctx)
 	if err != nil {
-		return false, "", nil
+		return false, "", err
 	}
 
 	insertStmt := "INSERT INTO " + accountsTableName + " (uuid, login, password)" +
@@ -117,7 +118,7 @@ func (dbData PostgreDB) PostOrder(ctx context.Context, number string, currentUse
 	// формирование запроса
 	// парсинг ответа
 	// в любом случае создаем запись в даблице заказов
-	_, err := dbData.DatabaseConnection.ExecContext(ctx, "INSERT INTO url_records (number, account_uuid) VALUES ($1, $2)", number, currentUserUUID)
+	_, err := dbData.DatabaseConnection.ExecContext(ctx, "INSERT INTO orders (number, account_uuid) VALUES ($1, $2)", number, currentUserUUID)
 	if err != nil {
 		return err
 	}
@@ -159,6 +160,85 @@ func (dbData PostgreDB) GetOrdersByUserId(ctx context.Context, id string) ([]mod
 			Status:     status,
 			Accrual:    accrual,
 			UploadedAt: uploadedAt,
+		}
+		ordersData = append(ordersData, order)
+	}
+
+	defer rows.Close()
+	return ordersData, nil
+}
+
+func (dbData PostgreDB) GetBalanceByUserId(ctx context.Context, id string) (int, int, error) {
+	var accural, withdrawn int
+	stmt := "SELECT accrual FROM orders WHERE account_uuid = $1"
+	rows, err := dbData.DatabaseConnection.QueryContext(ctx, stmt, id)
+	if err != nil {
+		return 0, 0, err
+	}
+	for rows.Next() {
+		var value int
+		err := rows.Scan(&value)
+		if err != nil {
+			return 0, 0, err
+		}
+		if value > 0 {
+			accural += value
+		} else if value < 0 {
+			withdrawn += value
+		}
+	}
+
+	accural += withdrawn
+	withdrawn *= -1
+
+	defer rows.Close()
+	return accural, withdrawn, nil
+}
+
+func (dbData PostgreDB) WithdrawPoints(ctx context.Context, number string, id string, amount int) error {
+	// отправка в систему начисления баллов для проверки запроса
+	// формирование запроса
+	// парсинг ответа
+	// в любом случае создаем запись в даблице заказов
+	_, err := dbData.DatabaseConnection.ExecContext(ctx, "INSERT INTO orders (number, account_uuid, accrual) VALUES ($1, $2, $3)", number, id, amount)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (dbData PostgreDB) CheckIfEnoughPoints(ctx context.Context, id string, amount int) (bool, error) {
+	accural, _, err := dbData.GetBalanceByUserId(ctx, id)
+	if err != nil {
+		return false, err
+	}
+
+	if amount > accural {
+		return false, nil
+	}
+	return true, nil
+}
+
+func (dbData PostgreDB) GetWithdrawals(ctx context.Context, id string) ([]models.WithdrawData, error) {
+	var ordersData []models.WithdrawData
+	stmt := "SELECT number, accrual, proceeded_at FROM orders WHERE account_uuid = $1 AND accural < 0"
+	rows, err := dbData.DatabaseConnection.QueryContext(ctx, stmt, id)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var number string
+		var accrual int
+		var proceededAt time.Time
+		err := rows.Scan(&number, &accrual, &proceededAt)
+		if err != nil {
+			return nil, err
+		}
+
+		order := models.WithdrawData{
+			Order:       number,
+			Sum:         accrual,
+			ProceededAt: proceededAt,
 		}
 		ordersData = append(ordersData, order)
 	}
