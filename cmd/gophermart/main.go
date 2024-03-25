@@ -35,6 +35,14 @@ func main() {
 	}
 
 	defer env.Storage.Close()
+	ctx := context.Background()
+	go func() {
+		for {
+			log.Print("Requests to accrual " + time.Now().GoString())
+			time.Sleep(time.Minute)
+			env.RequestAccuralData(ctx)
+		}
+	}()
 
 	r := chi.NewRouter()
 	r.Use(logger.LoggingMiddleware)

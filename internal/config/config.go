@@ -6,18 +6,20 @@ import (
 )
 
 type Config struct {
-	FlagRunAddr             string
-	FlagLogLevel            string
-	FlagDBConnectionAddress string
+	FlagRunAddr              string
+	FlagLogLevel             string
+	FlagDBConnectionAddress  string
+	FlagAccrualSystemAddress string
 }
 
 func MakeConfig() *Config {
 	config := &Config{}
 
-	flag.StringVar(&config.FlagRunAddr, "a", ":8080", "address to run server")
+	flag.StringVar(&config.FlagRunAddr, "a", ":8081", "address to run server")
 	flag.StringVar(&config.FlagLogLevel, "l", "info", "log level")
 	flag.StringVar(&config.FlagDBConnectionAddress, "d", "host=localhost port=5432 user=postgres "+
-    "password=vvv dbname=gophermart sslmode=disable", "database connection address")
+		"password=vvv dbname=gophermart sslmode=disable", "database connection address")
+	flag.StringVar(&config.FlagAccrualSystemAddress, "r", ":8080", "points calculation system address")
 
 	flag.Parse()
 
@@ -33,5 +35,8 @@ func MakeConfig() *Config {
 		config.FlagDBConnectionAddress = envDBConnectionAddress
 	}
 
+	if envAccrualSystemAddress := os.Getenv("ACCRUAL_SYSTEM_ADDRESS"); envAccrualSystemAddress != "" {
+		config.FlagAccrualSystemAddress = envAccrualSystemAddress
+	}
 	return config
 }

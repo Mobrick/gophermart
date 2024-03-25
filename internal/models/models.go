@@ -25,7 +25,13 @@ type WithdrawInputData struct {
 }
 
 type WithdrawData struct {
-	Order       string `json:"order"`
-	Sum         int    `json:"sum"`
-	ProceededAt time.Time   `json:"proceeded_at"`
+	Order       string    `json:"order"`
+	Sum         int       `json:"sum"`
+	ProceededAt time.Time `json:"proceeded_at"`
+}
+
+type AccrualData struct {
+	Order   string `json:"order"`
+	Status  string `json:"status"`
+	Accrual string `json:"accrual"`
 }

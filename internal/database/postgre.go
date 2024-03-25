@@ -85,11 +85,18 @@ func (dbData PostgreDB) CheckIfOrderExists(ctx context.Context, number string, c
 // если не существует, добавляем в таблицу горутиной
 // реализация без горутины
 func (dbData PostgreDB) PostOrder(ctx context.Context, number string, currentUserUUID string) error {
-	// отправка в систему начисления баллов для проверки запроса
-	// формирование запроса
-	// парсинг ответа
-	// в любом случае создаем запись в даблице заказов
 	_, err := dbData.DatabaseConnection.ExecContext(ctx, "INSERT INTO orders (number, account_uuid) VALUES ($1, $2)", number, currentUserUUID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (dbData PostgreDB) PostOrderWithAccrualData(ctx context.Context, number string, currentUserUUID string, accrualData models.AccrualData) error {
+	stmt := "INSERT INTO orders (number, account_uuid, status, accrual) "+
+	"VALUES ($1, $2, $3) ON CONFLICT (number)"+
+	" DO UPDATE SET proceeded_at = $4, status = $2, accrual = $3;"
+	_, err := dbData.DatabaseConnection.ExecContext(ctx, stmt, number, currentUserUUID, accrualData.Status, accrualData.Accrual, time.Now())
 	if err != nil {
 		return err
 	}
@@ -200,4 +207,8 @@ func (dbData PostgreDB) GetWithdrawals(ctx context.Context, id string) ([]models
 
 	defer rows.Close()
 	return ordersData, nil
+}
+
+func (dbData PostgreDB) GetNumbersToCheckInAccrual(ctx context.Context) ([]string, error) {
+	return nil, nil
 }
