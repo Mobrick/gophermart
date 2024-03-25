@@ -29,7 +29,7 @@ func (dbData PostgreDB) PingDB() error {
 func (dbData PostgreDB) AddNewAccount(ctx context.Context, accountData models.SimpleAccountData) (bool, string, error) {
 	id := uuid.New().String()
 
-	insertStmt := "INSERT INTO " + accountsTableName + " (uuid, login, password)" +
+	insertStmt := "INSERT INTO " + accountsTableName + " (uuid, username, password)" +
 		" VALUES ($1, $2, $3)"
 
 	_, err := dbData.DatabaseConnection.ExecContext(ctx, insertStmt, id, accountData.Login, accountData.Password)
@@ -50,7 +50,7 @@ func (dbData PostgreDB) AddNewAccount(ctx context.Context, accountData models.Si
 
 func (dbData PostgreDB) CheckLogin(ctx context.Context, accountData models.SimpleAccountData) (string, error) {
 
-	checkStmt := "SELECT uuid FROM accounts WHERE login=$1 AND password=$2)"
+	checkStmt := "SELECT uuid FROM accounts WHERE username=$1 AND password=$2"
 
 	var id string
 
