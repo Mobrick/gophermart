@@ -92,11 +92,9 @@ func (dbData PostgreDB) PostOrder(ctx context.Context, number string, currentUse
 	return nil
 }
 
-func (dbData PostgreDB) PostOrderWithAccrualData(ctx context.Context, number string, currentUserUUID string, accrualData models.AccrualData) error {
-	stmt := "INSERT INTO orders (number, account_uuid, status, accrual) "+
-	"VALUES ($1, $2, $3) ON CONFLICT (number)"+
-	" DO UPDATE SET proceeded_at = $4, status = $2, accrual = $3;"
-	_, err := dbData.DatabaseConnection.ExecContext(ctx, stmt, number, currentUserUUID, accrualData.Status, accrualData.Accrual, time.Now())
+func (dbData PostgreDB) PostOrderWithAccrualData(ctx context.Context, number string, accrualData models.AccrualData) error {
+	stmt := "UPDATE orders SET proceeded_at = $1, status = $2, accrual = $3 WHERE number = $4"
+	_, err := dbData.DatabaseConnection.ExecContext(ctx, stmt, time.Now(), accrualData.Status, accrualData.Accrual, number)
 	if err != nil {
 		return err
 	}

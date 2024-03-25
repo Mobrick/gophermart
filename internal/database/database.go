@@ -15,7 +15,7 @@ type Storage interface {
 	CheckLogin(context.Context, models.SimpleAccountData) (string, error)
 	CheckIfOrderExists(context.Context, string, string) (bool, error)
 	PostOrder(context.Context, string, string) error
-	PostOrderWithAccrualData(context.Context, string, string, models.AccrualData) error
+	PostOrderWithAccrualData(context.Context, string, models.AccrualData) error
 	GetOrdersByUserId(context.Context, string) ([]models.OrderData, error)
 	GetBalanceByUserId(context.Context, string) (int, int, error)
 	WithdrawPoints(context.Context, string, string, int) (error)

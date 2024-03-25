@@ -1,18 +1,23 @@
 package handler
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
 
+	"github.com/Mobrick/gophermart/internal/logger"
+	"github.com/Mobrick/gophermart/internal/models"
 	"golang.org/x/sync/errgroup"
 )
 
 func (env HandlerEnv) GetAccrualOrder(number string) (http.Response, error) {
 	requestURL := fmt.Sprintf("http://localhost%s", env.ConfigStruct.FlagAccrualSystemAddress)
 	requestPath := "/api/orders/"
+
 
 	response, err := http.Get(requestURL + requestPath + number)
 	if err != nil {
@@ -40,7 +45,6 @@ func (env HandlerEnv) RequestAccuralData(ctx context.Context) {
 			}
 			return nil
 		})
-
 		time.Sleep(time.Second)
 	}
 
@@ -50,11 +54,32 @@ func (env HandlerEnv) RequestAccuralData(ctx context.Context) {
 }
 
 func (env HandlerEnv) SingleAccrualOrderHandle(ctx context.Context, num string) error {
-	resp, err := env.GetAccrualOrder(num)
+	response, err := env.GetAccrualOrder(num)
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	if response.StatusCode == 200 {
+		// парсинг ответа
+		var accrualData models.AccrualData
+		var buf bytes.Buffer
+
+		_, err = buf.ReadFrom(response.Body)
+		if err != nil {
+			return err
+		}
+
+		if err = json.Unmarshal(buf.Bytes(), &accrualData); err != nil {
+			logger.Log.Debug("could not unmarshal registration data")
+			return err
+		}
+
+		err = env.Storage.PostOrderWithAccrualData(ctx, num, accrualData)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+	defer response.Body.Close()
 	return nil
 }
 
