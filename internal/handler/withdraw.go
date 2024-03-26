@@ -30,7 +30,7 @@ func (env HandlerEnv) WithdrawHandle(res http.ResponseWriter, req *http.Request)
 	}
 
 	if err = json.Unmarshal(buf.Bytes(), &withdrawData); err != nil {
-		logger.Log.Info("could not unmarshal withdraw data")
+		logger.Log.Info("could not unmarshal withdraw data " + err.Error())
 		http.Error(res, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -43,11 +43,13 @@ func (env HandlerEnv) WithdrawHandle(res http.ResponseWriter, req *http.Request)
 	}
 	sum, err := withdrawData.Sum.Float64()
 	if err != nil {
+		logger.Log.Info("could not unmarshal withdraw data " + err.Error())
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	enoughPoints, err := env.Storage.CheckIfEnoughPoints(ctx, id, sum)
 	if err != nil {
+		logger.Log.Info("could not check if enough poitns " + err.Error())
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -57,6 +59,7 @@ func (env HandlerEnv) WithdrawHandle(res http.ResponseWriter, req *http.Request)
 	}
 	err = env.Storage.WithdrawPoints(ctx, number, id, sum)
 	if err != nil {
+		logger.Log.Info("could not withdraw poitns " + err.Error())
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
 	}
