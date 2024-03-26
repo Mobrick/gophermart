@@ -276,5 +276,25 @@ func (dbData PostgreDB) GetWithdrawals(ctx context.Context, id string) ([]models
 }
 
 func (dbData PostgreDB) GetNumbersToCheckInAccrual(ctx context.Context) ([]string, error) {
-	return nil, nil
+	var numbers []string
+	stmt := "SELECT number FROM orders WHERE"
+	rows, err := dbData.DatabaseConnection.QueryContext(ctx, stmt)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var number string
+		err := rows.Scan(&number)
+		if err != nil {
+			return nil, err
+		}
+
+		numbers = append(numbers, number)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+	return numbers, nil
 }
