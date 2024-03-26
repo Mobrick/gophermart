@@ -240,7 +240,7 @@ func (dbData PostgreDB) CheckIfEnoughPoints(ctx context.Context, id string, amou
 
 func (dbData PostgreDB) GetWithdrawals(ctx context.Context, id string) ([]models.WithdrawData, error) {
 	var ordersData []models.WithdrawData
-	stmt := "SELECT number, accrual, proceeded_at FROM orders WHERE account_uuid = $1 AND accural < 0"
+	stmt := "SELECT number, accrual, proceeded_at FROM orders WHERE account_uuid = $1 AND accrual < 0"
 	rows, err := dbData.DatabaseConnection.QueryContext(ctx, stmt, id)
 	if err != nil {
 		return nil, err
