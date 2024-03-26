@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/Mobrick/gophermart/internal/logger"
@@ -19,6 +20,7 @@ func (env HandlerEnv) WithdrawalsHandle(res http.ResponseWriter, req *http.Reque
 	orders, err := env.Storage.GetWithdrawals(ctx, id)
 	if err != nil {
 		logger.Log.Info("could not get withdrawals")
+		log.Print("could not get withdrawals " + err.Error())
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -31,6 +33,7 @@ func (env HandlerEnv) WithdrawalsHandle(res http.ResponseWriter, req *http.Reque
 	resp, err := json.Marshal(orders)
 	if err != nil {
 		logger.Log.Info("could not marshal response")
+		log.Print("could not marshal response " + err.Error())
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
 	}
