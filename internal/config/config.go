@@ -15,7 +15,7 @@ type Config struct {
 func MakeConfig() *Config {
 	config := &Config{}
 
-	flag.StringVar(&config.FlagRunAddr, "a", ":8081", "address to run server")
+	flag.StringVar(&config.FlagRunAddr, "a", ":8080", "address to run server")
 	flag.StringVar(&config.FlagLogLevel, "l", "info", "log level")
 	flag.StringVar(&config.FlagDBConnectionAddress, "d", "", "database connection address")
 	flag.StringVar(&config.FlagAccrualSystemAddress, "r", "", "points calculation system address")
