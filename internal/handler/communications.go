@@ -43,7 +43,7 @@ func (env HandlerEnv) RequestAccuralData(ctx context.Context) {
 }
 
 func (env HandlerEnv) SingleAccrualOrderHandle(ctx context.Context, num string) error {
-	requestURL := fmt.Sprintf("http://localhost%s", env.ConfigStruct.FlagAccrualSystemAddress)
+	requestURL := fmt.Sprintf(env.ConfigStruct.FlagAccrualSystemAddress)
 	requestPath := "/api/orders/"
 	response, err := http.Get(requestURL + requestPath + num)
 	if err != nil {
