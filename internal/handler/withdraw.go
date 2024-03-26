@@ -3,6 +3,7 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/Mobrick/gophermart/internal/logger"
@@ -44,12 +45,14 @@ func (env HandlerEnv) WithdrawHandle(res http.ResponseWriter, req *http.Request)
 	sum, err := withdrawData.Sum.Float64()
 	if err != nil {
 		logger.Log.Info("could not unmarshal withdraw data " + err.Error())
+		log.Print("could not unmarshal withdraw data " + err.Error())
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	enoughPoints, err := env.Storage.CheckIfEnoughPoints(ctx, id, sum)
 	if err != nil {
 		logger.Log.Info("could not check if enough poitns " + err.Error())
+		log.Print("could not check if enough poitns " + err.Error())
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -60,6 +63,7 @@ func (env HandlerEnv) WithdrawHandle(res http.ResponseWriter, req *http.Request)
 	err = env.Storage.WithdrawPoints(ctx, number, id, sum)
 	if err != nil {
 		logger.Log.Info("could not withdraw poitns " + err.Error())
+		log.Print("could not withdraw poitns " + err.Error())
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
 	}
