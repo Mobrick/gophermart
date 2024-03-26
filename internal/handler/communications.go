@@ -25,6 +25,7 @@ func (env HandlerEnv) RequestAccuralData(ctx context.Context) {
 	inputCh := generator(numbersToCheck)
 
 	for number := range inputCh {
+		log.Print("sending number to accrual " + number)
 		number := number
 		g.Go(func() error {
 			err := env.SingleAccrualOrderHandle(ctx, number)

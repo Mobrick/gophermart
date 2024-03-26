@@ -39,7 +39,7 @@ func main() {
 	go func() {
 		for {
 			log.Print("Requests to accrual " + time.Now().GoString())
-			time.Sleep(time.Minute)
+			time.Sleep(time.Second * 10)
 			env.RequestAccuralData(ctx)
 		}
 	}()
