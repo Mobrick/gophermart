@@ -277,7 +277,7 @@ func (dbData PostgreDB) GetWithdrawals(ctx context.Context, id string) ([]models
 
 func (dbData PostgreDB) GetNumbersToCheckInAccrual(ctx context.Context) ([]string, error) {
 	var numbers []string
-	stmt := "SELECT number FROM orders WHERE"
+	stmt := "SELECT number FROM orders WHERE status NOT IN ('PROCESSED','INVALID')"
 	rows, err := dbData.DatabaseConnection.QueryContext(ctx, stmt)
 	if err != nil {
 		return nil, err
