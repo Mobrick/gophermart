@@ -123,7 +123,7 @@ func (dbData PostgreDB) CheckIfOrderExists(ctx context.Context, number string, c
 // если не существует, добавляем в таблицу горутиной
 // реализация без горутины
 func (dbData PostgreDB) PostOrder(ctx context.Context, number string, currentUserUUID string) error {
-	_, err := dbData.DatabaseConnection.ExecContext(ctx, "INSERT INTO orders (number, account_uuid) VALUES ($1, $2)", number, currentUserUUID)
+	_, err := dbData.DatabaseConnection.ExecContext(ctx, "INSERT INTO orders (number, account_uuid, status) VALUES ($1, $2)", number, currentUserUUID)
 	if err != nil {
 		return err
 	}
