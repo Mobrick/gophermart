@@ -17,13 +17,12 @@ func MakeConfig() *Config {
 
 	flag.StringVar(&config.FlagRunAddr, "a", ":8080", "address to run server")
 	flag.StringVar(&config.FlagLogLevel, "l", "info", "log level")
-	flag.StringVar(&config.FlagDBConnectionAddress, "d", "host=db port=5432 user=postgres "+
-		"password=vvv dbname=gophermart sslmode=disable", "database connection address")
+	flag.StringVar(&config.FlagDBConnectionAddress, "d", "", "database connection address")
 	flag.StringVar(&config.FlagAccrualSystemAddress, "r", "", "points calculation system address")
 
 	flag.Parse()
 
-	if envRunAddr := os.Getenv("SERVER_ADDRESS"); envRunAddr != "" {
+	if envRunAddr := os.Getenv("RUN_ADDRESS"); envRunAddr != "" {
 		config.FlagRunAddr = envRunAddr
 	}
 
@@ -31,7 +30,7 @@ func MakeConfig() *Config {
 		config.FlagLogLevel = envLogLevel
 	}
 
-	if envDBConnectionAddress := os.Getenv("DATABASE_DSN"); envDBConnectionAddress != "" {
+	if envDBConnectionAddress := os.Getenv("DATABASE_URI"); envDBConnectionAddress != "" {
 		config.FlagDBConnectionAddress = envDBConnectionAddress
 	}
 
