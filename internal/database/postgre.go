@@ -219,11 +219,7 @@ func (dbData PostgreDB) GetBalanceByUserID(ctx context.Context, id string) (floa
 }
 
 func (dbData PostgreDB) WithdrawPoints(ctx context.Context, number string, id string, amount float64) error {
-	// отправка в систему начисления баллов для проверки запроса
-	// формирование запроса
-	// парсинг ответа
-	// в любом случае создаем запись в даблице заказов
-	_, err := dbData.DatabaseConnection.ExecContext(ctx, "INSERT INTO orders (number, account_uuid, accrual) VALUES ($1, $2, $3)", number, id, amount)
+	_, err := dbData.DatabaseConnection.ExecContext(ctx, "INSERT INTO orders (number, account_uuid, accrual) VALUES ($1, $2, $3)", number, id, -amount)
 	if err != nil {
 		return err
 	}
