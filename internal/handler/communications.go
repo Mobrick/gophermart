@@ -15,10 +15,10 @@ import (
 )
 
 func (env HandlerEnv) RequestAccuralData(ctx context.Context) {
-
+	log.Print("Getting numbers to check")
 	numbersToCheck, err := env.Storage.GetNumbersToCheckInAccrual(ctx)
 	if err != nil {
-		log.Print(err)
+		log.Print("что-то пошло не так на этапе получения номеров для отправки" + err.Error())
 	}
 
 	g := new(errgroup.Group)
