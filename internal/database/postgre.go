@@ -3,14 +3,19 @@ package database
 import (
 	"context"
 	"database/sql"
+	"embed"
 	"errors"
 	"log"
 	"time"
 
+	accountsmigrations "github.com/Mobrick/gophermart/internal/database/accounts_migrations"
+	"github.com/Mobrick/gophermart/internal/logger"
 	"github.com/Mobrick/gophermart/internal/models"
 	"github.com/google/uuid"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/pressly/goose/v3"
+	"github.com/pressly/goose/v3/database"
 )
 
 const accountsTableName = "accounts"
@@ -25,14 +30,22 @@ func (dbData PostgreDB) PingDB() error {
 	return err
 }
 
+var embedMigrations embed.FS
+
 // Возвращает true если такой логин уже хранится в базе
 func (dbData PostgreDB) AddNewAccount(ctx context.Context, accountData models.SimpleAccountData) (bool, string, error) {
+
+	err := dbData.createAccountsTable(ctx)
+	if err != nil {
+		return false, "", err
+	}
+
 	id := uuid.New().String()
 
 	insertStmt := "INSERT INTO " + accountsTableName + " (uuid, username, password)" +
 		" VALUES ($1, $2, $3)"
 
-	_, err := dbData.DatabaseConnection.ExecContext(ctx, insertStmt, id, accountData.Login, accountData.Password)
+	_, err = dbData.DatabaseConnection.ExecContext(ctx, insertStmt, id, accountData.Login, accountData.Password)
 
 	if err != nil {
 		var pgErr *pgconn.PgError
@@ -46,6 +59,25 @@ func (dbData PostgreDB) AddNewAccount(ctx context.Context, accountData models.Si
 	}
 
 	return false, id, nil
+}
+
+func (dbData PostgreDB) createAccountsTable(ctx context.Context) error {
+	provider, err := goose.NewProvider(database.DialectPostgres, dbData.DatabaseConnection, accountsmigrations.EmbedAccounts)
+	if err != nil {
+		return err
+	}
+
+	results, err := provider.Up(ctx)
+	if err != nil {
+		return err
+	}
+
+	for _, r := range results {
+		log.Printf("%-3s %-2v done: %v\n", r.Source.Type, r.Source.Version, r.Duration)
+	}
+
+	logger.Log.Debug("Created table with goose embed")
+	return nil
 }
 
 func (dbData PostgreDB) CheckLogin(ctx context.Context, accountData models.SimpleAccountData) (string, error) {
