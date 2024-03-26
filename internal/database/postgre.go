@@ -9,6 +9,7 @@ import (
 	"time"
 
 	accountsmigrations "github.com/Mobrick/gophermart/internal/database/accounts_migrations"
+	ordersmigrations "github.com/Mobrick/gophermart/internal/database/orders_migrations"
 	"github.com/Mobrick/gophermart/internal/logger"
 	"github.com/Mobrick/gophermart/internal/models"
 	"github.com/google/uuid"
@@ -117,10 +118,34 @@ func (dbData PostgreDB) CheckIfOrderExists(ctx context.Context, number string, c
 // если не существует, добавляем в таблицу горутиной
 // реализация без горутины
 func (dbData PostgreDB) PostOrder(ctx context.Context, number string, currentUserUUID string) error {
-	_, err := dbData.DatabaseConnection.ExecContext(ctx, "INSERT INTO orders (number, account_uuid) VALUES ($1, $2)", number, currentUserUUID)
+	err := dbData.createOrdersTable(ctx)
+	if err != nil {
+		return nil
+	}
+
+	_, err = dbData.DatabaseConnection.ExecContext(ctx, "INSERT INTO orders (number, account_uuid) VALUES ($1, $2)", number, currentUserUUID)
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (dbData PostgreDB) createOrdersTable(ctx context.Context) error {
+	provider, err := goose.NewProvider(database.DialectPostgres, dbData.DatabaseConnection, ordersmigrations.EmbedOrders)
+	if err != nil {
+		return err
+	}
+
+	results, err := provider.Up(ctx)
+	if err != nil {
+		return err
+	}
+
+	for _, r := range results {
+		log.Printf("%-3s %-2v done: %v\n", r.Source.Type, r.Source.Version, r.Duration)
+	}
+
+	logger.Log.Debug("Created table with goose embed")
 	return nil
 }
 
