@@ -18,7 +18,7 @@ func (env HandlerEnv) WithdrawalsHandle(res http.ResponseWriter, req *http.Reque
 
 	orders, err := env.Storage.GetWithdrawals(ctx, id)
 	if err != nil {
-		logger.Log.Debug("could not get withdrawals")
+		logger.Log.Info("could not get withdrawals")
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -30,7 +30,7 @@ func (env HandlerEnv) WithdrawalsHandle(res http.ResponseWriter, req *http.Reque
 	// TODO: если accural пустое не включать его в результат
 	resp, err := json.Marshal(orders)
 	if err != nil {
-		logger.Log.Debug("could not marshal response")
+		logger.Log.Info("could not marshal response")
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
 	}

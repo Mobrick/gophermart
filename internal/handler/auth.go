@@ -30,13 +30,13 @@ func (env HandlerEnv) AuthHandle(res http.ResponseWriter, req *http.Request) {
 	}
 
 	if err = json.Unmarshal(buf.Bytes(), &loginData); err != nil {
-		logger.Log.Debug("could not unmarshal registration data")
+		logger.Log.Info("could not unmarshal registration data")
 		http.Error(res, err.Error(), http.StatusBadRequest)
 		return
 	}
 	id, err := env.Storage.CheckLogin(ctx, loginData)
 	if err != nil {
-		logger.Log.Debug("could not check login data")
+		logger.Log.Info("could not check login data")
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
 	}

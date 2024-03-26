@@ -26,7 +26,7 @@ func (env HandlerEnv) RegisterHandle(res http.ResponseWriter, req *http.Request)
 	}
 
 	if err = json.Unmarshal(buf.Bytes(), &registrationData); err != nil {
-		logger.Log.Debug("could not unmarshal registration data")
+		logger.Log.Info("could not unmarshal registration data")
 		http.Error(res, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -34,14 +34,13 @@ func (env HandlerEnv) RegisterHandle(res http.ResponseWriter, req *http.Request)
 	storage := env.Storage
 	loginAlreadyInUse, id, err := storage.AddNewAccount(ctx, registrationData)
 	if err != nil {
-		logger.Log.Debug("could not complete user registration", zap.String("Attempted login", string(registrationData.Login)))
-		log.Printf("could not complete user registration: " + err.Error())
+		logger.Log.Info("could not complete user registration", zap.String("Attempted login", string(registrationData.Login)))
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	if loginAlreadyInUse {
-		logger.Log.Debug("login already in use", zap.String("Attempted login", string(registrationData.Login)))
+		logger.Log.Info("login already in use", zap.String("Attempted login", string(registrationData.Login)))
 		res.WriteHeader(http.StatusConflict)
 		return
 	}

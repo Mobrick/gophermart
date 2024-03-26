@@ -30,7 +30,7 @@ func (env HandlerEnv) WithdrawHandle(res http.ResponseWriter, req *http.Request)
 	}
 
 	if err = json.Unmarshal(buf.Bytes(), &withdrawData); err != nil {
-		logger.Log.Debug("could not unmarshal withdraw data")
+		logger.Log.Info("could not unmarshal withdraw data")
 		http.Error(res, err.Error(), http.StatusBadRequest)
 		return
 	}

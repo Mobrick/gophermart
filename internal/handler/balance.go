@@ -19,7 +19,7 @@ func (env HandlerEnv) BalanceHandle(res http.ResponseWriter, req *http.Request) 
 	}
 	accrual, withdrawn, err := env.Storage.GetBalanceByUserID(ctx, id)
 	if err != nil {
-		logger.Log.Debug("could not get orders by user id")
+		logger.Log.Info("could not get orders by user id")
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -30,7 +30,7 @@ func (env HandlerEnv) BalanceHandle(res http.ResponseWriter, req *http.Request) 
 
 	resp, err := json.Marshal(balance)
 	if err != nil {
-		logger.Log.Debug("could not marshal response")
+		logger.Log.Info("could not marshal response")
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
 	}

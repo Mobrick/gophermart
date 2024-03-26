@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"github.com/Mobrick/gophermart/internal/logger"
@@ -19,8 +18,7 @@ func (env HandlerEnv) OrdersHandle(res http.ResponseWriter, req *http.Request) {
 
 	orders, err := env.Storage.GetOrdersByUserID(ctx, id)
 	if err != nil {
-		logger.Log.Debug("could not get orders by user id")
-		log.Print("could not get orders by user id " + err.Error())
+		logger.Log.Info("could not get orders by user id")
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -32,8 +30,7 @@ func (env HandlerEnv) OrdersHandle(res http.ResponseWriter, req *http.Request) {
 	// TODO: если accural пустое не включать его в результат
 	resp, err := json.Marshal(orders)
 	if err != nil {
-		logger.Log.Debug("could not marshal response")
-		log.Print("could not marshal response")
+		logger.Log.Info("could not marshal response")
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
 	}

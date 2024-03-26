@@ -60,7 +60,7 @@ func (env HandlerEnv) SingleAccrualOrderHandle(ctx context.Context, num string) 
 		}
 
 		if err = json.Unmarshal(buf.Bytes(), &accrualData); err != nil {
-			logger.Log.Debug("could not unmarshal registration data")
+			logger.Log.Info("could not unmarshal registration data")
 			return err
 		}
 
