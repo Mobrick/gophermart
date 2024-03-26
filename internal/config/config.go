@@ -17,7 +17,8 @@ func MakeConfig() *Config {
 
 	flag.StringVar(&config.FlagRunAddr, "a", ":8080", "address to run server")
 	flag.StringVar(&config.FlagLogLevel, "l", "info", "log level")
-	flag.StringVar(&config.FlagDBConnectionAddress, "d", "", "database connection address")
+	flag.StringVar(&config.FlagDBConnectionAddress, "d", "host=localhost port=5432 user=postgres "+
+		"password=vvv dbname=gophermart sslmode=disable", "database connection address")
 	flag.StringVar(&config.FlagAccrualSystemAddress, "r", "", "points calculation system address")
 
 	flag.Parse()
