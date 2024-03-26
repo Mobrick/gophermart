@@ -101,7 +101,7 @@ func (dbData PostgreDB) PostOrderWithAccrualData(ctx context.Context, number str
 	return nil
 }
 
-func (dbData PostgreDB) GetOrdersByUserId(ctx context.Context, id string) ([]models.OrderData, error) {
+func (dbData PostgreDB) GetOrdersByUserID(ctx context.Context, id string) ([]models.OrderData, error) {
 	var ordersData []models.OrderData
 	stmt := "SELECT number, status, accrual, uploaded_at FROM orders WHERE account_uuid = $1"
 	rows, err := dbData.DatabaseConnection.QueryContext(ctx, stmt, id)
@@ -123,12 +123,15 @@ func (dbData PostgreDB) GetOrdersByUserId(ctx context.Context, id string) ([]mod
 		}
 		ordersData = append(ordersData, order)
 	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
 
 	defer rows.Close()
 	return ordersData, nil
 }
 
-func (dbData PostgreDB) GetBalanceByUserId(ctx context.Context, id string) (int, int, error) {
+func (dbData PostgreDB) GetBalanceByUserID(ctx context.Context, id string) (int, int, error) {
 	var accural, withdrawn int
 	stmt := "SELECT accrual FROM orders WHERE account_uuid = $1"
 	rows, err := dbData.DatabaseConnection.QueryContext(ctx, stmt, id)
@@ -148,6 +151,9 @@ func (dbData PostgreDB) GetBalanceByUserId(ctx context.Context, id string) (int,
 		}
 	}
 
+	if err = rows.Err(); err != nil {
+		return 0, 0, err
+	}
 	accural += withdrawn
 	withdrawn *= -1
 
@@ -168,7 +174,7 @@ func (dbData PostgreDB) WithdrawPoints(ctx context.Context, number string, id st
 }
 
 func (dbData PostgreDB) CheckIfEnoughPoints(ctx context.Context, id string, amount int) (bool, error) {
-	accural, _, err := dbData.GetBalanceByUserId(ctx, id)
+	accural, _, err := dbData.GetBalanceByUserID(ctx, id)
 	if err != nil {
 		return false, err
 	}
@@ -201,6 +207,10 @@ func (dbData PostgreDB) GetWithdrawals(ctx context.Context, id string) ([]models
 			ProceededAt: proceededAt,
 		}
 		ordersData = append(ordersData, order)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
 	}
 
 	defer rows.Close()

@@ -16,7 +16,7 @@ func (env HandlerEnv) BalanceHandle(res http.ResponseWriter, req *http.Request) 
 			res.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-		accural, withdrawn, err := env.Storage.GetBalanceByUserId(ctx, id)
+		accural, withdrawn, err := env.Storage.GetBalanceByUserID(ctx, id)
 		if err != nil {
 			logger.Log.Debug("could not get orders by user id")
 			http.Error(res, err.Error(), http.StatusInternalServerError)

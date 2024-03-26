@@ -14,18 +14,6 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-func (env HandlerEnv) GetAccrualOrder(number string) (http.Response, error) {
-	requestURL := fmt.Sprintf("http://localhost%s", env.ConfigStruct.FlagAccrualSystemAddress)
-	requestPath := "/api/orders/"
-
-
-	response, err := http.Get(requestURL + requestPath + number)
-	if err != nil {
-		return *response, err
-	}
-	return *response, nil
-}
-
 func (env HandlerEnv) RequestAccuralData(ctx context.Context) {
 
 	numbersToCheck, err := env.Storage.GetNumbersToCheckInAccrual(ctx)
@@ -54,7 +42,9 @@ func (env HandlerEnv) RequestAccuralData(ctx context.Context) {
 }
 
 func (env HandlerEnv) SingleAccrualOrderHandle(ctx context.Context, num string) error {
-	response, err := env.GetAccrualOrder(num)
+	requestURL := fmt.Sprintf("http://localhost%s", env.ConfigStruct.FlagAccrualSystemAddress)
+	requestPath := "/api/orders/"
+	response, err := http.Get(requestURL + requestPath + num)
 	if err != nil {
 		return err
 	}

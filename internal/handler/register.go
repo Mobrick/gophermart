@@ -40,7 +40,7 @@ func (env HandlerEnv) RegisterHandle(res http.ResponseWriter, req *http.Request)
 
 	if loginAlreadyInUse {
 		logger.Log.Debug("login already in use", zap.String("Attempted login", string(registrationData.Login)))
-		http.Error(res, err.Error(), http.StatusConflict)
+		res.WriteHeader(http.StatusConflict)
 		return
 	}
 

@@ -14,7 +14,7 @@ type HandlerEnv struct {
 	Storage      database.Storage
 }
 
-func GetUserIdFromRequest(req *http.Request) (string, bool) {
+func GetUserIDFromRequest(req *http.Request) (string, bool) {
 	cookie, err := req.Cookie("auth_token")
 	if err != nil {
 		log.Printf("no cookie found. " + err.Error())
@@ -22,10 +22,10 @@ func GetUserIdFromRequest(req *http.Request) (string, bool) {
 	}	
 
 	token := cookie.Value
-	userId, ok := userauth.GetUserID(token)
+	userID, ok := userauth.GetUserID(token)
 	if !ok {
 		log.Printf("invalid token")
 		return "", false
 	}
-	return userId, true
+	return userID, true
 }
