@@ -166,7 +166,8 @@ func (dbData PostgreDB) GetOrdersByUserID(ctx context.Context, id string) ([]mod
 		return nil, err
 	}
 	for rows.Next() {
-		var number, status, accrual, uploadedAt string
+		var number, status, uploadedAt string
+		var accrual int
 		err := rows.Scan(&number, &status, &accrual, &uploadedAt)
 		if err != nil {
 			return nil, err
