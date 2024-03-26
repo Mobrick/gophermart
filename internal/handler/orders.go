@@ -20,7 +20,7 @@ func (env HandlerEnv) OrdersHandle(res http.ResponseWriter, req *http.Request) {
 	orders, err := env.Storage.GetOrdersByUserID(ctx, id)
 	if err != nil {
 		logger.Log.Debug("could not get orders by user id")
-		log.Print("could not get orders by user id")
+		log.Print("could not get orders by user id " + err.Error())
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
 	}
