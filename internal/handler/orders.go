@@ -27,7 +27,6 @@ func (env HandlerEnv) OrdersHandle(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(http.StatusNoContent)
 		return
 	}
-	// TODO: если accural пустое не включать его в результат
 	resp, err := json.Marshal(orders)
 	if err != nil {
 		logger.Log.Info("could not marshal response")

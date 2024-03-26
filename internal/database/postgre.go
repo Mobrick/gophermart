@@ -159,7 +159,7 @@ func (dbData PostgreDB) PostOrderWithAccrualData(ctx context.Context, number str
 
 func (dbData PostgreDB) GetOrdersByUserID(ctx context.Context, id string) ([]models.OrderData, error) {
 	var ordersData []models.OrderData
-	stmt := "SELECT number, status, accrual, uploaded_at FROM orders WHERE account_uuid = $1"
+	stmt := "SELECT number, status, accrual, uploaded_at FROM orders WHERE account_uuid = $1 ORDER BY uploaded_at ASC"
 	rows, err := dbData.DatabaseConnection.QueryContext(ctx, stmt, id)
 	if err != nil {
 		return nil, err
@@ -240,7 +240,7 @@ func (dbData PostgreDB) CheckIfEnoughPoints(ctx context.Context, id string, amou
 
 func (dbData PostgreDB) GetWithdrawals(ctx context.Context, id string) ([]models.WithdrawData, error) {
 	var ordersData []models.WithdrawData
-	stmt := "SELECT number, accrual, proceeded_at FROM orders WHERE account_uuid = $1 AND accrual < 0"
+	stmt := "SELECT number, accrual, proceeded_at FROM orders WHERE account_uuid = $1 AND accrual < 0 ORDER BY proceeded_at ASC"
 	rows, err := dbData.DatabaseConnection.QueryContext(ctx, stmt, id)
 	if err != nil {
 		return nil, err
