@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/Mobrick/gophermart/internal/logger"
@@ -46,6 +47,7 @@ func (env HandlerEnv) OrderPostHandle(res http.ResponseWriter, req *http.Request
 
 		if err := g.Wait(); err != nil {
 			logger.Log.Debug("could not post order")
+			log.Printf("could not post order: " + err.Error())
 			http.Error(res, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -54,6 +56,8 @@ func (env HandlerEnv) OrderPostHandle(res http.ResponseWriter, req *http.Request
 		return
 		// если другая, не ожидаемая ошибка то 500
 	} else if err != nil {
+		
+		log.Printf("could not post order: " + err.Error())
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
 	}
