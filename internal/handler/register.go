@@ -3,6 +3,7 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/Mobrick/gophermart/internal/logger"
@@ -33,7 +34,8 @@ func (env HandlerEnv) RegisterHandle(res http.ResponseWriter, req *http.Request)
 	storage := env.Storage
 	loginAlreadyInUse, id, err := storage.AddNewAccount(ctx, registrationData)
 	if err != nil {
-		logger.Log.Debug("could not copmplete user registration", zap.String("Attempted login", string(registrationData.Login)))
+		logger.Log.Debug("could not complete user registration", zap.String("Attempted login", string(registrationData.Login)))
+		log.Printf("could not complete user registration: " + err.Error())
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -46,6 +48,7 @@ func (env HandlerEnv) RegisterHandle(res http.ResponseWriter, req *http.Request)
 
 	cookie, err := userauth.CreateNewCookie(id)
 	if err != nil {
+		log.Printf("could not create cookie: " + err.Error())
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
 	}
