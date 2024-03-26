@@ -256,7 +256,7 @@ func (dbData PostgreDB) GetWithdrawals(ctx context.Context, id string) ([]models
 
 		order := models.WithdrawData{
 			Order:       number,
-			Sum:         json.Number(strconv.FormatFloat(accrual, 'e', -1, 64)),
+			Sum:         json.Number(strconv.FormatFloat(-accrual, 'e', -1, 64)),
 			ProceededAt: proceededAt,
 		}
 		ordersData = append(ordersData, order)
