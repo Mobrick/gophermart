@@ -3,9 +3,10 @@ package database
 import (
 	"context"
 	"database/sql"
-	"embed"
+	"encoding/json"
 	"errors"
 	"log"
+	"strconv"
 	"time"
 
 	accountsmigrations "github.com/Mobrick/gophermart/internal/database/accounts_migrations"
@@ -30,8 +31,6 @@ func (dbData PostgreDB) PingDB() error {
 	err := dbData.DatabaseConnection.Ping()
 	return err
 }
-
-var embedMigrations embed.FS
 
 // Возвращает true если такой логин уже хранится в базе
 func (dbData PostgreDB) AddNewAccount(ctx context.Context, accountData models.SimpleAccountData) (bool, string, error) {
@@ -167,7 +166,7 @@ func (dbData PostgreDB) GetOrdersByUserID(ctx context.Context, id string) ([]mod
 	}
 	for rows.Next() {
 		var number, status, uploadedAt string
-		var accrual int
+		var accrual float64
 		err := rows.Scan(&number, &status, &accrual, &uploadedAt)
 		if err != nil {
 			return nil, err
@@ -176,7 +175,7 @@ func (dbData PostgreDB) GetOrdersByUserID(ctx context.Context, id string) ([]mod
 		order := models.OrderData{
 			Number:     number,
 			Status:     status,
-			Accrual:    accrual,
+			Accrual:    json.Number(strconv.FormatFloat(accrual, 'e', -1, 64)),
 			UploadedAt: uploadedAt,
 		}
 		ordersData = append(ordersData, order)
@@ -189,15 +188,15 @@ func (dbData PostgreDB) GetOrdersByUserID(ctx context.Context, id string) ([]mod
 	return ordersData, nil
 }
 
-func (dbData PostgreDB) GetBalanceByUserID(ctx context.Context, id string) (int, int, error) {
-	var accural, withdrawn int
+func (dbData PostgreDB) GetBalanceByUserID(ctx context.Context, id string) (float64, float64, error) {
+	var accural, withdrawn float64
 	stmt := "SELECT accrual FROM orders WHERE account_uuid = $1"
 	rows, err := dbData.DatabaseConnection.QueryContext(ctx, stmt, id)
 	if err != nil {
 		return 0, 0, err
 	}
 	for rows.Next() {
-		var value int
+		var value float64
 		err := rows.Scan(&value)
 		if err != nil {
 			return 0, 0, err
@@ -219,7 +218,7 @@ func (dbData PostgreDB) GetBalanceByUserID(ctx context.Context, id string) (int,
 	return accural, withdrawn, nil
 }
 
-func (dbData PostgreDB) WithdrawPoints(ctx context.Context, number string, id string, amount int) error {
+func (dbData PostgreDB) WithdrawPoints(ctx context.Context, number string, id string, amount float64) error {
 	// отправка в систему начисления баллов для проверки запроса
 	// формирование запроса
 	// парсинг ответа
@@ -231,7 +230,7 @@ func (dbData PostgreDB) WithdrawPoints(ctx context.Context, number string, id st
 	return nil
 }
 
-func (dbData PostgreDB) CheckIfEnoughPoints(ctx context.Context, id string, amount int) (bool, error) {
+func (dbData PostgreDB) CheckIfEnoughPoints(ctx context.Context, id string, amount float64) (bool, error) {
 	accural, _, err := dbData.GetBalanceByUserID(ctx, id)
 	if err != nil {
 		return false, err
@@ -252,7 +251,7 @@ func (dbData PostgreDB) GetWithdrawals(ctx context.Context, id string) ([]models
 	}
 	for rows.Next() {
 		var number string
-		var accrual int
+		var accrual float64
 		var proceededAt time.Time
 		err := rows.Scan(&number, &accrual, &proceededAt)
 		if err != nil {
@@ -261,7 +260,7 @@ func (dbData PostgreDB) GetWithdrawals(ctx context.Context, id string) ([]models
 
 		order := models.WithdrawData{
 			Order:       number,
-			Sum:         accrual,
+			Sum:         json.Number(strconv.FormatFloat(accrual, 'e', -1, 64)),
 			ProceededAt: proceededAt,
 		}
 		ordersData = append(ordersData, order)

@@ -17,9 +17,9 @@ type Storage interface {
 	PostOrder(context.Context, string, string) error
 	PostOrderWithAccrualData(context.Context, string, models.AccrualData) error
 	GetOrdersByUserID(context.Context, string) ([]models.OrderData, error)
-	GetBalanceByUserID(context.Context, string) (int, int, error)
-	WithdrawPoints(context.Context, string, string, int) (error)
-	CheckIfEnoughPoints(context.Context, string, int) (bool, error)
+	GetBalanceByUserID(context.Context, string) (float64, float64, error)
+	WithdrawPoints(context.Context, string, string, float64) (error)
+	CheckIfEnoughPoints(context.Context, string, float64) (bool, error)
 	GetWithdrawals(context.Context, string) ([]models.WithdrawData, error)
 	GetNumbersToCheckInAccrual(context.Context) ([]string, error)
 	Close()

@@ -41,7 +41,12 @@ func (env HandlerEnv) WithdrawHandle(res http.ResponseWriter, req *http.Request)
 		res.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
-	enoughPoints, err := env.Storage.CheckIfEnoughPoints(ctx, id, withdrawData.Sum)
+	sum, err := withdrawData.Sum.Float64()
+	if err != nil {
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	enoughPoints, err := env.Storage.CheckIfEnoughPoints(ctx, id, sum)
 	if err != nil {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
@@ -50,8 +55,7 @@ func (env HandlerEnv) WithdrawHandle(res http.ResponseWriter, req *http.Request)
 		res.WriteHeader(http.StatusPaymentRequired)
 		return
 	}
-	// TODO: в горутину и отправка запроса к системе начисления баллов
-	err = env.Storage.WithdrawPoints(ctx, number, id, withdrawData.Sum)
+	err = env.Storage.WithdrawPoints(ctx, number, id, sum)
 	if err != nil {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
